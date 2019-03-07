@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration>
+
+  <property name="PROJECT_NAME" value="springboot-web"/>
+
+  <springProfile name="local">
+    <logger name="org.springframework" level="INFO"/>
+    <logger name="org.springframework.web.filter.CommonsRequestLoggingFilter" level="DEBUG"/>
+    <logger name="com.github" level="DEBUG"/>
+  </springProfile>
+
+  <springProfile name="test,prod">
+    <logger name="org.springframework" level="INFO"/>
+    <logger name="org.springframework.web.filter.CommonsRequestLoggingFilter" level="DEBUG"/>
+    <logger name="com.github" level="DEBUG"/>
+    <logger name="com.netflix" level="INFO"/>
+  </springProfile>
+
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger[%L] - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- Simple file output -->
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <!-- encoder defaults to ch.qos.logback.classic.encoder.PatternLayoutEncoder -->
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36}[%L] - %msg%n</pattern>
+    </encoder>
+
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <!-- rollover daily -->
+      <springProfile name="local">
+        <fileNamePattern>logs/app.log.%d{yyyy-MM-dd}-%i</fileNamePattern>
+      </springProfile>
+      <springProfile name="dev,test,prod">
+        <fileNamePattern>/app/logs/${PROJECT_NAME}/app.log.%d{yyyy-MM-dd}-%i</fileNamePattern>
+      </springProfile>
+      <timeBasedFileNamingAndTriggeringPolicy
+        class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+        <!-- or whenever the file size reaches 64 MB -->
+        <maxFileSize>64 MB</maxFileSize>
+      </timeBasedFileNamingAndTriggeringPolicy>
+    </rollingPolicy>
+
+    <!-- Safely log to the same file from multiple JVMs. Degrades performance! -->
+    <prudent>true</prudent>
+  </appender>
+
+  <springProfile name="prod,test">
+    <root level="DEBUG">
+      <appender-ref ref="FILE"/>
+    </root>
+  </springProfile>
+  <springProfile name="local">
+    <root level="DEBUG">
+      <appender-ref ref="STDOUT"/>
+    </root>
+  </springProfile>
+
+</configuration>
